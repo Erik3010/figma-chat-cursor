@@ -1,19 +1,28 @@
-import { Coordinate } from "../types/coordinate";
-import ChatBox from "./ChatBox";
+import { Coordinate } from "../../types/coordinate";
+import ChatBox from "../ChatBox";
 
 interface Props {
+  id: string | number;
   coordinate: Coordinate;
+  isShowChatBox: boolean;
   isFocusChatBox: boolean;
 }
 
-const Cursor: React.FC<Props> = ({ coordinate, isFocusChatBox }) => {
+const Cursor: React.FC<Props> = ({
+  id,
+  coordinate,
+  isShowChatBox,
+  isFocusChatBox,
+}) => {
   return (
     <div
+      id={id.toString()}
+      className="pointer-wrapper"
       style={{
         transform: `translate3d(${coordinate.x}px, ${coordinate.y}px, 0px)`,
       }}
     >
-      <ChatBox isFocus={isFocusChatBox} />
+      {isShowChatBox && <ChatBox isFocus={isFocusChatBox} />}
       <svg
         className="pointer"
         width={35}

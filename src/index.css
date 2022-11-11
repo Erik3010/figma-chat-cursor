@@ -42,6 +42,10 @@ body {
   font-size: 0.875rem;
 }
 
+.pointer-wrapper {
+  position: absolute;
+}
+
 .pointer {
   position: absolute;
   top: -10px;
