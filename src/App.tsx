@@ -28,13 +28,23 @@ function App() {
     },
   ]);
 
+  const sendAction = useCallback(
+    ({ action, data }: { action: string; data: any }) => {
+      webSocket.current?.send(JSON.stringify({ action, data }));
+    },
+    [webSocket.current]
+  );
+
   const handleMouseMove = useCallback(
     ({ clientX, clientY }: MouseEvent) => {
-      webSocket.current?.send(JSON.stringify({ x: clientX, y: clientY }));
+      sendAction({
+        action: "SET_COORDINATE",
+        data: { x: clientX, y: clientY },
+      });
 
       setCoordinate({ x: clientX, y: clientY });
     },
-    [setCoordinate, webSocket.current]
+    [setCoordinate, webSocket.current, sendAction]
   );
 
   const allowedKeys = ["/", "Escape"];
@@ -70,10 +80,21 @@ function App() {
     webSocket.current = new WebSocket("ws://localhost:8080");
 
     webSocket.current.onopen = () => {
-      webSocket.current?.send(
-        JSON.stringify({ type: "INTIAL", data: meCursorId.current })
-      );
+      sendAction({
+        action: "SET_USER",
+        data: {
+          id: meCursorId.current,
+          coordinate,
+          isShowChatBox,
+          isFocusChatBox,
+        },
+      });
       console.log("connection open");
+    };
+
+    webSocket.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log(data);
     };
 
     return () => {
