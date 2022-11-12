@@ -1,0 +1,57 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+
+export const useWS = ({
+  handleOpenConnection,
+  handleMessage,
+  handleCloseConnection,
+}: {
+  handleOpenConnection: (event: Event) => void;
+  handleMessage: (event: MessageEvent<any>) => void;
+  handleCloseConnection: (event: Event) => void;
+}) => {
+  const [ws, setWS] = useState<WebSocket | null>(null);
+
+  const connect = useCallback((userId: string) => {
+    const url = `ws://localhost:8080?user_id=${userId}`;
+    const webSocket = new WebSocket(url);
+    setWS(webSocket);
+  }, []);
+
+  const sendMessage = useCallback((payload: any) => {
+    ws?.send(JSON.stringify(payload));
+  }, []);
+
+  const close = useCallback(() => {
+    if (ws?.readyState !== ws?.OPEN) return;
+    ws?.close();
+  }, [ws]);
+
+  useEffect(() => {
+    if (!ws) return;
+    ws.addEventListener("open", handleOpenConnection);
+
+    return () => {
+      ws.removeEventListener("open", handleOpenConnection);
+    };
+  }, [handleOpenConnection]);
+
+  useEffect(() => {
+    if (!ws) return;
+    ws.addEventListener("message", handleMessage);
+
+    return () => {
+      ws.removeEventListener("message", handleMessage);
+    };
+  }, [handleMessage]);
+
+  useEffect(() => {
+    if (!ws) return;
+    ws.addEventListener("close", handleCloseConnection);
+
+    return () => {
+      ws.removeEventListener("close", handleCloseConnection);
+    };
+  }, [handleCloseConnection]);
+
+  return { connect, sendMessage, close };
+};

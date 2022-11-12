@@ -20,20 +20,23 @@ const setUser = (user) => {
   users.push(user);
 };
 
-const handleWSConnection = (socket) => {
+const handleWSConnection = (socket, req) => {
+  console.log("WebSocket Connected");
+  console.log(req);
+
   socket.on("message", handleWSMessage);
   socket.on("close", handleWSClose);
 };
 
 const handleWSMessage = (messageBuffer) => {
-  const message = JSON.parse(messageBuffer.toString());
+  const payload = JSON.parse(messageBuffer.toString());
 
-  switch (message.action) {
+  switch (payload.action) {
     case "SET_USER":
-      setUser({ ...message.data, socket });
+      setUser({ ...payload.data, socket });
       break;
     case "SET_COORDINATE":
-      broadcast(message.data);
+      broadcast(payload.data);
       break;
   }
 };

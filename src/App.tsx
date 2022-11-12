@@ -3,14 +3,25 @@ import { Coordinate } from "./types/coordinate";
 import { UserCursor } from "./types/UserCursor";
 import Cursor from "./components/Cursor/Cursor";
 import { randomId } from "./helpers";
+import { useWS } from "./hooks/useWS";
 
 function App() {
   const [coordinate, setCoordinate] = useState<Coordinate>({ x: 0, y: 0 });
   const [isShowChatBox, setIsShowChatBox] = useState(false);
   const [isFocusChatBox, setIsFocusChatBox] = useState(false);
 
-  const meCursorId = useRef("me");
+  const cursorId = useRef(randomId());
   const webSocket = useRef<WebSocket>();
+
+  const {
+    connect: connectWS,
+    sendMessage,
+    close: closeWS,
+  } = useWS({
+    handleOpenConnection: () => {},
+    handleMessage: () => {},
+    handleCloseConnection: () => {},
+  });
 
   const [otherCursors, setOtherCursors] = useState<UserCursor[]>([
     {
@@ -67,13 +78,17 @@ function App() {
 
   useEffect(() => {
     document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("keydown", handleKeyDown);
-
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [handleMouseMove]);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleMouseMove, handleKeyDown]);
+  }, [handleKeyDown]);
 
   useEffect(() => {
     // webSocket.current = new WebSocket("ws://localhost:8080");
@@ -97,6 +112,12 @@ function App() {
     // return () => {
     //   webSocket.current?.close();
     // };
+
+    connectWS(cursorId.current);
+
+    return () => {
+      closeWS();
+    };
   }, []);
 
   return (
@@ -106,7 +127,12 @@ function App() {
           <Cursor key={cursor.id} userCursor={cursor} />
         ))}
         <Cursor
-          userCursor={{ id: 123, coordinate, isShowChatBox, isFocusChatBox }}
+          userCursor={{
+            id: cursorId.current,
+            coordinate,
+            isShowChatBox,
+            isFocusChatBox,
+          }}
         />
       </div>
       <h1>Figma Cursor</h1>
