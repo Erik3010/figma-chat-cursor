@@ -1,19 +1,14 @@
 import { Coordinate } from "../../types/coordinate";
+import { UserCursor } from "../../types/UserCursor";
 import ChatBox from "../ChatBox";
 
 interface Props {
-  id: string | number;
-  coordinate: Coordinate;
-  isShowChatBox: boolean;
-  isFocusChatBox: boolean;
+  userCursor: UserCursor;
 }
 
-const Cursor: React.FC<Props> = ({
-  id,
-  coordinate,
-  isShowChatBox,
-  isFocusChatBox,
-}) => {
+const Cursor: React.FC<Props> = ({ userCursor }) => {
+  const { id, coordinate, isShowChatBox, isFocusChatBox } = userCursor;
+
   return (
     <div
       id={id.toString()}

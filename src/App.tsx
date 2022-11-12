@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Coordinate } from "./types/coordinate";
-import { MeCursorContext } from "./context/MeCursorContext";
-import MeCursor from "./components/Cursor/MeCursor";
-import { CursorContext } from "./types/cursorContextValue";
+import { UserCursor } from "./types/UserCursor";
 import Cursor from "./components/Cursor/Cursor";
+import { randomId } from "./helpers";
 
 function App() {
   const [coordinate, setCoordinate] = useState<Coordinate>({ x: 0, y: 0 });
@@ -13,15 +12,15 @@ function App() {
   const meCursorId = useRef("me");
   const webSocket = useRef<WebSocket>();
 
-  const [otherCursors, setOtherCursors] = useState<CursorContext[]>([
+  const [otherCursors, setOtherCursors] = useState<UserCursor[]>([
     {
-      id: Date.now(),
+      id: randomId(),
       coordinate: { x: 50, y: 50 },
       isFocusChatBox: false,
       isShowChatBox: true,
     },
     {
-      id: Date.now(),
+      id: randomId(),
       coordinate: { x: 150, y: 150 },
       isFocusChatBox: false,
       isShowChatBox: false,
@@ -37,10 +36,10 @@ function App() {
 
   const handleMouseMove = useCallback(
     ({ clientX, clientY }: MouseEvent) => {
-      sendAction({
-        action: "SET_COORDINATE",
-        data: { x: clientX, y: clientY },
-      });
+      // sendAction({
+      //   action: "SET_COORDINATE",
+      //   data: { x: clientX, y: clientY },
+      // });
 
       setCoordinate({ x: clientX, y: clientY });
     },
@@ -77,47 +76,38 @@ function App() {
   }, [handleMouseMove, handleKeyDown]);
 
   useEffect(() => {
-    webSocket.current = new WebSocket("ws://localhost:8080");
-
-    webSocket.current.onopen = () => {
-      sendAction({
-        action: "SET_USER",
-        data: {
-          id: meCursorId.current,
-          coordinate,
-          isShowChatBox,
-          isFocusChatBox,
-        },
-      });
-      console.log("connection open");
-    };
-
-    webSocket.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log(data);
-    };
-
-    return () => {
-      webSocket.current?.close();
-    };
+    // webSocket.current = new WebSocket("ws://localhost:8080");
+    // console.log(webSocket.current.readyState);
+    // webSocket.current.addEventListener("open", () => {
+    //   console.log("connection open");
+    //   sendAction({
+    //     action: "SET_USER",
+    //     data: {
+    //       id: meCursorId.current,
+    //       coordinate,
+    //       isShowChatBox,
+    //       isFocusChatBox,
+    //     },
+    //   });
+    // });
+    // webSocket.current.addEventListener("message", (event) => {
+    //   const data = JSON.parse(event.data);
+    //   console.log(data);
+    // });
+    // return () => {
+    //   webSocket.current?.close();
+    // };
   }, []);
 
   return (
     <div className="app">
       <div className="cursor-layer">
-        <MeCursorContext.Provider
-          value={{
-            id: meCursorId.current,
-            isShowChatBox,
-            isFocusChatBox,
-            coordinate,
-          }}
-        >
-          <MeCursor />
-        </MeCursorContext.Provider>
-        {otherCursors.map((cursor, index) => (
-          <Cursor key={index} {...cursor} />
+        {otherCursors.map((cursor) => (
+          <Cursor key={cursor.id} userCursor={cursor} />
         ))}
+        <Cursor
+          userCursor={{ id: 123, coordinate, isShowChatBox, isFocusChatBox }}
+        />
       </div>
       <h1>Figma Cursor</h1>
       <p className="description">

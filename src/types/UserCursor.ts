@@ -1,6 +1,6 @@
 import { Coordinate } from "./coordinate";
 
-export interface CursorContext {
+export interface UserCursor {
   id: number | string;
   isShowChatBox: boolean;
   isFocusChatBox: boolean;

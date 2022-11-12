@@ -1,10 +1,11 @@
 const WebSocket = require("ws");
-
-const server = new WebSocket.Server({ port: 8080 }, () => {
-  console.log("socket open");
-});
+const port = 8080;
 
 const users = [];
+
+const server = new WebSocket.Server({ port }, () => {
+  console.log(`Server is listening on port ${port}`);
+});
 
 const broadcast = (data) => {
   for (const user of users) {
@@ -19,24 +20,26 @@ const setUser = (user) => {
   users.push(user);
 };
 
-server.on("connection", (socket) => {
-  socket.on("message", (messageBuffer) => {
-    const message = messageBuffer.toString();
-    const json = JSON.parse(message);
+const handleWSConnection = (socket) => {
+  socket.on("message", handleWSMessage);
+  socket.on("close", handleWSClose);
+};
 
-    switch (json.action) {
-      case "SET_USER":
-        setUser({ ...json.data, socket });
-        break;
-      case "SET_COORDINATE":
-        broadcast(json.data);
-        break;
-    }
-  });
+const handleWSMessage = (messageBuffer) => {
+  const message = JSON.parse(messageBuffer.toString());
 
-  socket.on("close", () => {
-    console.log(socket);
-    // users.delete()
-    console.log("delete user");
-  });
-});
+  switch (message.action) {
+    case "SET_USER":
+      setUser({ ...message.data, socket });
+      break;
+    case "SET_COORDINATE":
+      broadcast(message.data);
+      break;
+  }
+};
+
+const handleWSClose = () => {
+  console.log("Connection closed");
+};
+
+server.on("connection", handleWSConnection);
