@@ -9,6 +9,8 @@ function App() {
   const [coordinate, setCoordinate] = useState<Coordinate>({ x: 0, y: 0 });
   const [isShowChatBox, setIsShowChatBox] = useState(false);
   const [isFocusChatBox, setIsFocusChatBox] = useState(false);
+  const [text, setText] = useState<string | null>(null);
+  const [isWSConnected, setIsWSConnected] = useState(false);
 
   const cursorId = useRef(randomId());
   const webSocket = useRef<WebSocket>();
@@ -18,44 +20,57 @@ function App() {
     sendMessage,
     close: closeWS,
   } = useWS({
-    handleOpenConnection: () => {},
+    handleOpenConnection: () => {
+      setIsWSConnected(true);
+    },
     handleMessage,
     handleCloseConnection: () => {},
   });
 
-  const [otherCursors, setOtherCursors] = useState<UserCursor[]>([
-    // {
-    //   id: randomId(),
-    //   coordinate: { x: 50, y: 50 },
-    //   isFocusChatBox: false,
-    //   isShowChatBox: true,
-    // },
-    // {
-    //   id: randomId(),
-    //   coordinate: { x: 150, y: 150 },
-    //   isFocusChatBox: false,
-    //   isShowChatBox: false,
-    // },
-  ]);
+  const [otherCursors, setOtherCursors] = useState<UserCursor[]>([]);
+
+  const allowedKeys = ["/", "Escape"];
+
+  const changeOtherCursorText = useCallback(
+    (id: string, key: string, value: any) => {
+      const newOtherCustomer = [...otherCursors];
+      const index = otherCursors.findIndex((user) => user.id === id);
+
+      newOtherCustomer[index] = { ...newOtherCustomer[index], [key]: value };
+
+      setOtherCursors(newOtherCustomer);
+    },
+    [otherCursors]
+  );
 
   function handleMessage(event: MessageEvent) {
     const result = JSON.parse(event.data);
-    // setOtherCursors([...otherCursors, result]);
 
     switch (result.type) {
       case "NEW_USER":
+        console.log(result, cursorId.current);
         if (result.payload.id !== cursorId.current) {
-          setOtherCursors([...otherCursors, result.payload]);
+          const newCursor = {
+            id: result.payload.user_id,
+            coordinate: { x: 0, y: 0 },
+            isShowChatBox: false,
+            isFocusChatBox: false,
+            text: null,
+          };
+          setOtherCursors([...otherCursors, newCursor]);
         }
         break;
       case "REMOVE_USER":
-        console.log(result);
+        console.log(result, cursorId.current);
+        setOtherCursors(
+          otherCursors.filter(({ id }) => id !== result.payload.user_id)
+        );
         break;
       case "GET_USERS":
         console.log(result);
         setOtherCursors([...result.payload]);
         break;
-      case "CHANGE_COORDINATE":
+      case "COORDINATE_CHANGED":
         const { user_id, coordinate } = result.payload;
         if (user_id !== cursorId.current) {
           const index = otherCursors.findIndex(({ id }) => id === user_id);
@@ -66,30 +81,53 @@ function App() {
           setOtherCursors(newOtherCustomer);
         }
         break;
+      case "MESSAGE_CHANGED":
+        const { message } = result.payload;
+
+        if (result.payload.user_id !== cursorId.current) {
+          // changeOtherCursorText(
+          //   result.payload.user_id,
+          //   "isShowChatBox",
+          //   message !== ""
+          // );
+          // console.log(message !== "", message);
+
+          // changeOtherCursorText(result.payload.user_id, "text", message);
+          const newOtherCustomer = [...otherCursors];
+          const index = otherCursors.findIndex(
+            (user) => user.id === result.payload.user_id
+          );
+
+          newOtherCustomer[index] = {
+            ...newOtherCustomer[index],
+            isShowChatBox: message !== "",
+            text: message,
+          };
+
+          // console.log(JSON.parse(JSON.stringify(newOtherCustomer)), message);
+
+          setOtherCursors(newOtherCustomer);
+        }
+        break;
     }
   }
 
-  const sendAction = useCallback(
-    ({ action, data }: { action: string; data: any }) => {
-      webSocket.current?.send(JSON.stringify({ action, data }));
-    },
-    [webSocket.current]
-  );
+  const handleTextChange = (id: string, value: string | null) => {
+    if (id === cursorId.current) {
+      setText(value);
+      sendMessage("SET_MESSAGE", value);
+    }
+  };
 
   const handleMouseMove = useCallback(
     ({ clientX, clientY }: MouseEvent) => {
-      // sendAction({
-      //   action: "SET_COORDINATE",
-      //   data: { x: clientX, y: clientY },
-      // });
+      if (!isWSConnected) return;
 
       setCoordinate({ x: clientX, y: clientY });
       sendMessage("SET_COORDINATE", { x: clientX, y: clientY });
     },
-    [setCoordinate, webSocket.current, sendMessage]
+    [setCoordinate, webSocket.current, sendMessage, isWSConnected]
   );
-
-  const allowedKeys = ["/", "Escape"];
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -98,15 +136,33 @@ function App() {
       if (!allowedKeys.includes(key)) return;
       event.preventDefault();
 
+      console.log(isFocusChatBox);
+
       if (key === "/") {
         setIsFocusChatBox(true);
         setIsShowChatBox(true);
       } else if (key === "Escape") {
         setIsShowChatBox(false);
+        setIsFocusChatBox(false);
+        setText("");
+        sendMessage("SET_MESSAGE", "");
       }
     },
     [isShowChatBox, webSocket.current]
   );
+
+  const handleExitPage = useCallback(() => {
+    sendMessage("REMOVE_USER", { user_id: cursorId.current });
+    console.log("EXIT PAGE");
+  }, [sendMessage]);
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", handleExitPage);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleExitPage);
+    };
+  }, [handleExitPage]);
 
   useEffect(() => {
     document.addEventListener("mousemove", handleMouseMove);
@@ -134,15 +190,29 @@ function App() {
     <div className="app">
       <div className="cursor-layer">
         {otherCursors.map((cursor) => (
-          <Cursor key={cursor.id} userCursor={cursor} />
+          <Cursor
+            me={false}
+            key={cursor.id}
+            userCursor={cursor}
+            onChangeText={(id: string, key: string, value: string | null) =>
+              // changeOtherCursorText(id, key, value)
+              handleTextChange(id, value)
+            }
+          />
         ))}
         <Cursor
+          me
           userCursor={{
             id: cursorId.current,
             coordinate,
             isShowChatBox,
             isFocusChatBox,
+            text,
           }}
+          onChangeText={(id: string, key: string, value: string | null) =>
+            // setText(value)
+            handleTextChange(id, value)
+          }
         />
       </div>
       <h1>Figma Cursor</h1>

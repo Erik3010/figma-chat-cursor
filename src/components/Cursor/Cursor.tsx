@@ -4,10 +4,12 @@ import ChatBox from "../ChatBox";
 
 interface Props {
   userCursor: UserCursor;
+  onChangeText: (index: string, key: string, value: string | null) => void;
+  me: boolean;
 }
 
-const Cursor: React.FC<Props> = ({ userCursor }) => {
-  const { id, coordinate, isShowChatBox, isFocusChatBox } = userCursor;
+const Cursor: React.FC<Props> = ({ userCursor, onChangeText, me }) => {
+  const { id, coordinate, isShowChatBox, isFocusChatBox, text } = userCursor;
 
   return (
     <div
@@ -17,7 +19,22 @@ const Cursor: React.FC<Props> = ({ userCursor }) => {
         transform: `translate3d(${coordinate.x}px, ${coordinate.y}px, 0px)`,
       }}
     >
-      {isShowChatBox && <ChatBox isFocus={isFocusChatBox} />}
+      {/* {isShowChatBox && (
+        <ChatBox
+          cursorId={id.toString()}
+          text={text}
+          isFocus={isFocusChatBox}
+          onChangeText={onChangeText}
+        />
+      )} */}
+      <ChatBox
+        me={me}
+        cursorId={id.toString()}
+        text={text}
+        isFocus={isFocusChatBox}
+        onChangeText={onChangeText}
+        isShowChatBox={isShowChatBox}
+      />
       <svg
         className="pointer"
         width={35}

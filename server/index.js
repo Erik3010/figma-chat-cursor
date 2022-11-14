@@ -35,6 +35,7 @@ const setUser = (userId, connection) => {
     coordinate: { x: 0, y: 0 },
     isShowChatBox: false,
     isFocusChatBox: false,
+    text: null,
   });
 };
 
@@ -42,9 +43,14 @@ const setCoordinate = (userId, payload) => {
   const index = users.findIndex(({ user_id }) => user_id === userId);
   if (index === -1) return;
 
-  // console.log(users[index].coordinate);
   users[index].coordinate = payload;
-  // console.log(users[index].coordinate, payload);
+};
+
+const setValue = (userId, key, value) => {
+  const index = users.findIndex(({ user_id }) => user_id === userId);
+  if (index === -1) return;
+
+  users[index][key] = value;
 };
 
 const handleWSMessage = (userId, connection, messageBuffer) => {
@@ -52,7 +58,8 @@ const handleWSMessage = (userId, connection, messageBuffer) => {
 
   switch (result.type) {
     case "SET_COORDINATE":
-      setCoordinate(userId, result.payload);
+      // setCoordinate(userId, result.payload);
+      setValue(userId, "coordinate", result.payload);
 
       // const others = users
       //   .filter(({ user_id }) => user_id !== userId)
@@ -66,7 +73,7 @@ const handleWSMessage = (userId, connection, messageBuffer) => {
       //   });
       // broadcast(others, userId);
       broadcast({
-        type: "CHANGE_COORDINATE",
+        type: "COORDINATE_CHANGED",
         payload: {
           user_id: userId,
           coordinate: result.payload,
@@ -84,6 +91,28 @@ const handleWSMessage = (userId, connection, messageBuffer) => {
       // });
       // socket.send(JSON.stringify(users));
       break;
+    case "REMOVE_USER":
+      const index = users.findIndex(
+        ({ user_id }) => user_id === result.payload.user_id
+      );
+      users.splice(index, 1);
+
+      broadcast({
+        type: "REMOVE_USER",
+        payload: { user_id: result.payload.user_id },
+      });
+      break;
+    case "SET_MESSAGE":
+      setValue(userId, "text", result.payload);
+
+      broadcast({
+        type: "MESSAGE_CHANGED",
+        payload: {
+          user_id: userId,
+          message: result.payload,
+        },
+      });
+      break;
   }
 };
 
@@ -93,16 +122,11 @@ const handleWSConnection = (socket, req) => {
   const { query } = url.parse(req.url, true);
   const userId = query.user_id;
 
-  setUser(userId, socket);
   broadcast({
     type: "NEW_USER",
-    payload: {
-      id: userId,
-      coordinate: { x: 0, y: 0 },
-      isShowChatBox: false,
-      isFocusChatBox: false,
-    },
+    payload: { user_id: userId },
   });
+  setUser(userId, socket);
 
   const usersResponse = users
     .filter(({ user_id }) => userId !== user_id)
@@ -112,6 +136,7 @@ const handleWSConnection = (socket, req) => {
         coordinate: user.coordinate,
         isShowChatBox: user.isShowChatBox,
         isFocusChatBox: user.isFocusChatBox,
+        text: user.text,
       };
     });
   socket.send(JSON.stringify({ type: "GET_USERS", payload: usersResponse }));
@@ -121,9 +146,6 @@ const handleWSConnection = (socket, req) => {
 };
 
 const handleWSClose = (userId) => {
-  const index = users.findIndex(({ user_id }) => user_id === userId);
-  users.splice(index, 1);
-
   console.log("Connection closed");
 };
 

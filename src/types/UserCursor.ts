@@ -5,4 +5,5 @@ export interface UserCursor {
   isShowChatBox: boolean;
   isFocusChatBox: boolean;
   coordinate: Coordinate;
+  text: string | null;
 }
