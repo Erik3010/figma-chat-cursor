@@ -17,9 +17,12 @@ export const useWS = ({
     setWS(webSocket);
   }, []);
 
-  const sendMessage = useCallback((payload: any) => {
-    ws?.send(JSON.stringify(payload));
-  }, []);
+  const sendMessage = useCallback(
+    (type: string, payload: any) => {
+      ws?.send(JSON.stringify({ type, payload }));
+    },
+    [ws]
+  );
 
   const close = useCallback(() => {
     if (ws?.readyState !== ws?.OPEN) return;
@@ -33,7 +36,7 @@ export const useWS = ({
     return () => {
       ws.removeEventListener("open", handleOpenConnection);
     };
-  }, [handleOpenConnection]);
+  }, [ws, handleOpenConnection]);
 
   useEffect(() => {
     if (!ws) return;
@@ -42,7 +45,7 @@ export const useWS = ({
     return () => {
       ws.removeEventListener("message", handleMessage);
     };
-  }, [handleMessage]);
+  }, [ws, handleMessage]);
 
   useEffect(() => {
     if (!ws) return;
@@ -51,7 +54,7 @@ export const useWS = ({
     return () => {
       ws.removeEventListener("close", handleCloseConnection);
     };
-  }, [handleCloseConnection]);
+  }, [ws, handleCloseConnection]);
 
   return { connect, sendMessage, close };
 };

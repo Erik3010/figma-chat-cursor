@@ -19,24 +19,55 @@ function App() {
     close: closeWS,
   } = useWS({
     handleOpenConnection: () => {},
-    handleMessage: () => {},
+    handleMessage,
     handleCloseConnection: () => {},
   });
 
   const [otherCursors, setOtherCursors] = useState<UserCursor[]>([
-    {
-      id: randomId(),
-      coordinate: { x: 50, y: 50 },
-      isFocusChatBox: false,
-      isShowChatBox: true,
-    },
-    {
-      id: randomId(),
-      coordinate: { x: 150, y: 150 },
-      isFocusChatBox: false,
-      isShowChatBox: false,
-    },
+    // {
+    //   id: randomId(),
+    //   coordinate: { x: 50, y: 50 },
+    //   isFocusChatBox: false,
+    //   isShowChatBox: true,
+    // },
+    // {
+    //   id: randomId(),
+    //   coordinate: { x: 150, y: 150 },
+    //   isFocusChatBox: false,
+    //   isShowChatBox: false,
+    // },
   ]);
+
+  function handleMessage(event: MessageEvent) {
+    const result = JSON.parse(event.data);
+    // setOtherCursors([...otherCursors, result]);
+
+    switch (result.type) {
+      case "NEW_USER":
+        if (result.payload.id !== cursorId.current) {
+          setOtherCursors([...otherCursors, result.payload]);
+        }
+        break;
+      case "REMOVE_USER":
+        console.log(result);
+        break;
+      case "GET_USERS":
+        console.log(result);
+        setOtherCursors([...result.payload]);
+        break;
+      case "CHANGE_COORDINATE":
+        const { user_id, coordinate } = result.payload;
+        if (user_id !== cursorId.current) {
+          const index = otherCursors.findIndex(({ id }) => id === user_id);
+
+          const newOtherCustomer = [...otherCursors];
+          newOtherCustomer[index] = { ...newOtherCustomer[index], coordinate };
+
+          setOtherCursors(newOtherCustomer);
+        }
+        break;
+    }
+  }
 
   const sendAction = useCallback(
     ({ action, data }: { action: string; data: any }) => {
@@ -53,8 +84,9 @@ function App() {
       // });
 
       setCoordinate({ x: clientX, y: clientY });
+      sendMessage("SET_COORDINATE", { x: clientX, y: clientY });
     },
-    [setCoordinate, webSocket.current, sendAction]
+    [setCoordinate, webSocket.current, sendMessage]
   );
 
   const allowedKeys = ["/", "Escape"];
@@ -91,28 +123,6 @@ function App() {
   }, [handleKeyDown]);
 
   useEffect(() => {
-    // webSocket.current = new WebSocket("ws://localhost:8080");
-    // console.log(webSocket.current.readyState);
-    // webSocket.current.addEventListener("open", () => {
-    //   console.log("connection open");
-    //   sendAction({
-    //     action: "SET_USER",
-    //     data: {
-    //       id: meCursorId.current,
-    //       coordinate,
-    //       isShowChatBox,
-    //       isFocusChatBox,
-    //     },
-    //   });
-    // });
-    // webSocket.current.addEventListener("message", (event) => {
-    //   const data = JSON.parse(event.data);
-    //   console.log(data);
-    // });
-    // return () => {
-    //   webSocket.current?.close();
-    // };
-
     connectWS(cursorId.current);
 
     return () => {
