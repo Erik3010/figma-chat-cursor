@@ -14,6 +14,8 @@ function App() {
 
   const cursorId = useRef(randomId());
   const webSocket = useRef<WebSocket>();
+  const allowedKeys = useRef(["/", "Escape"]);
+  const [otherCursors, setOtherCursors] = useState<UserCursor[]>([]);
 
   const {
     connect: connectWS,
@@ -28,10 +30,6 @@ function App() {
       setOtherCursors([]);
     },
   });
-
-  const [otherCursors, setOtherCursors] = useState<UserCursor[]>([]);
-
-  const allowedKeys = ["/", "Escape"];
 
   const changeOtherCursorText = useCallback(
     (id: string, key: string, value: any) => {
@@ -104,12 +102,15 @@ function App() {
     }
   }
 
-  const handleTextChange = (id: string, value: string | null) => {
-    if (id !== cursorId.current) return;
+  const handleTextChange = useCallback(
+    (id: string, value: string | null) => {
+      if (id !== cursorId.current) return;
 
-    setText(value);
-    sendMessage("SET_MESSAGE", value);
-  };
+      setText(value);
+      sendMessage("SET_MESSAGE", value);
+    },
+    [cursorId.current, setText, sendMessage]
+  );
 
   const handleMouseMove = useCallback(
     ({ clientX, clientY }: MouseEvent) => {
@@ -125,7 +126,7 @@ function App() {
     (event: KeyboardEvent) => {
       const { key } = event;
 
-      if (!allowedKeys.includes(key)) return;
+      if (!allowedKeys.current.includes(key)) return;
       event.preventDefault();
 
       if (key === "/") {
@@ -170,8 +171,8 @@ function App() {
 
   useEffect(() => {
     connectWS(cursorId.current);
-
     return () => {
+      // sendMessage("REMOVE_USER", { user_id: cursorId.current });
       closeWS();
     };
   }, []);
@@ -185,7 +186,6 @@ function App() {
             key={cursor.id}
             userCursor={cursor}
             onChangeText={(id: string, key: string, value: string | null) =>
-              // changeOtherCursorText(id, key, value)
               handleTextChange(id, value)
             }
           />
@@ -200,7 +200,6 @@ function App() {
             text,
           }}
           onChangeText={(id: string, key: string, value: string | null) =>
-            // setText(value)
             handleTextChange(id, value)
           }
         />
