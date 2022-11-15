@@ -24,7 +24,9 @@ function App() {
       setIsWSConnected(true);
     },
     handleMessage,
-    handleCloseConnection: () => {},
+    handleCloseConnection: () => {
+      setOtherCursors([]);
+    },
   });
 
   const [otherCursors, setOtherCursors] = useState<UserCursor[]>([]);
@@ -85,14 +87,6 @@ function App() {
         const { message } = result.payload;
 
         if (result.payload.user_id !== cursorId.current) {
-          // changeOtherCursorText(
-          //   result.payload.user_id,
-          //   "isShowChatBox",
-          //   message !== ""
-          // );
-          // console.log(message !== "", message);
-
-          // changeOtherCursorText(result.payload.user_id, "text", message);
           const newOtherCustomer = [...otherCursors];
           const index = otherCursors.findIndex(
             (user) => user.id === result.payload.user_id
@@ -104,8 +98,6 @@ function App() {
             text: message,
           };
 
-          // console.log(JSON.parse(JSON.stringify(newOtherCustomer)), message);
-
           setOtherCursors(newOtherCustomer);
         }
         break;
@@ -113,10 +105,10 @@ function App() {
   }
 
   const handleTextChange = (id: string, value: string | null) => {
-    if (id === cursorId.current) {
-      setText(value);
-      sendMessage("SET_MESSAGE", value);
-    }
+    if (id !== cursorId.current) return;
+
+    setText(value);
+    sendMessage("SET_MESSAGE", value);
   };
 
   const handleMouseMove = useCallback(
@@ -135,8 +127,6 @@ function App() {
 
       if (!allowedKeys.includes(key)) return;
       event.preventDefault();
-
-      console.log(isFocusChatBox);
 
       if (key === "/") {
         setIsFocusChatBox(true);
