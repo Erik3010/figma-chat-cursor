@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { WEBSOCKET_URL } from "../consants";
 
 export const useWS = ({
   handleOpenConnection,
@@ -12,7 +13,7 @@ export const useWS = ({
   const [ws, setWS] = useState<WebSocket | null>(null);
 
   const connect = useCallback((userId: string) => {
-    const url = `ws://localhost:8080?user_id=${userId}`;
+    const url = `${WEBSOCKET_URL}?user_id=${userId}`;
     const webSocket = new WebSocket(url);
     setWS(webSocket);
   }, []);
