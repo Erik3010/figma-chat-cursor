@@ -24,7 +24,6 @@ const setUser = (userId, connection) => {
     user_id: userId,
     coordinate: { x: 0, y: 0 },
     showChatBox: false,
-    isFocusChatBox: false,
     text: null,
   });
 };
@@ -96,7 +95,6 @@ const handleWSConnection = (socket, req) => {
         id: user.user_id,
         coordinate: user.coordinate,
         showChatBox: user.showChatBox,
-        isFocusChatBox: user.isFocusChatBox,
         text: user.text,
       };
     });

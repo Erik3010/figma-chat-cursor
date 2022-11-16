@@ -1,5 +1,6 @@
 import { ChangeEvent, useEffect, useRef, useCallback, useState } from "react";
 import { measureTextWidth } from "../helpers";
+import { ChangeTextHandler } from "../types";
 
 interface Props {
   cursorId: string;
@@ -7,7 +8,7 @@ interface Props {
   me: boolean;
   showChatBox: boolean;
   text: string | null;
-  onChangeText: (id: string, key: string, value: string | null) => void;
+  onChangeText: ChangeTextHandler;
 }
 
 const ChatBox: React.FC<Props> = ({
@@ -26,12 +27,10 @@ const ChatBox: React.FC<Props> = ({
   const onChangeValue = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       setWidth(measureTextWidth(event.target.value, fontSize.current));
-      onChangeText(cursorId, "text", event.target.value);
+      onChangeText(cursorId, event.target.value);
     },
     [onChangeText]
   );
-
-  useEffect(() => {}, [text]);
 
   useEffect(() => {
     isFocus && inputRef.current?.focus();

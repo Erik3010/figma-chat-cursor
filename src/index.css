@@ -15,6 +15,7 @@
 
 html,
 body {
+  width: 100%;
   min-height: 100%;
   height: 100%;
   display: flex;
@@ -22,14 +23,13 @@ body {
   justify-content: center;
   cursor: none;
   position: relative;
+  overflow: hidden;
 }
 
-.cursor-layer {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  overflow: hidden;
+#root {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .app {
@@ -40,6 +40,14 @@ body {
   color: #999999;
   margin-top: 0.25rem;
   font-size: 0.875rem;
+}
+
+.cursor-layer {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  /* overflow: hidden; */
 }
 
 .pointer-wrapper {
@@ -58,14 +66,6 @@ body {
   border: 1px solid #156f7c;
   padding: .15rem .35rem;
   border-radius: .125rem;
-  /* background: #EB5757;
-  border: 2px solid #b33b3b; */
-  /* background: #ee994e;
-  border: 2px solid #be7230; */
-  /* background: #3787f0;
-  border: 2px solid #2669c0; */
-  /* background: #9B51E0;
-  border: 2px solid #7337aa; */
   color: #fff;
   transition: .3s ease;
 }

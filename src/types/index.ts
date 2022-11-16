@@ -6,7 +6,11 @@ export interface Coordinate {
 export interface UserCursor {
   id: string;
   showChatBox: boolean;
-  isFocusChatBox: boolean;
   coordinate: Coordinate;
   text: string | null;
 }
+
+export type ChangeTextHandler = (
+  id: UserCursor["id"],
+  text: UserCursor["text"]
+) => void;

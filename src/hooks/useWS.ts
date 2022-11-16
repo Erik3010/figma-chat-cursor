@@ -27,7 +27,6 @@ export const useWS = ({
 
   const close = useCallback(() => {
     if (ws?.readyState !== ws?.OPEN) return;
-    console.log(ws?.close);
     ws?.close();
   }, [ws]);
 
