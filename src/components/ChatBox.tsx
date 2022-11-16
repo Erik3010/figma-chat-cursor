@@ -39,7 +39,7 @@ const ChatBox: React.FC<Props> = ({
 
   useEffect(() => {
     setWidth(measureTextWidth(text ?? "", fontSize.current));
-  });
+  }, [text]);
 
   return (
     <div className={`cursor-chat-box ${isShowChatBox ? "has-message" : ""}`}>

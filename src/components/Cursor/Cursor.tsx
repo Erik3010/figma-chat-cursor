@@ -19,14 +19,6 @@ const Cursor: React.FC<Props> = ({ userCursor, onChangeText, me }) => {
         transform: `translate3d(${coordinate.x}px, ${coordinate.y}px, 0px)`,
       }}
     >
-      {/* {isShowChatBox && (
-        <ChatBox
-          cursorId={id.toString()}
-          text={text}
-          isFocus={isFocusChatBox}
-          onChangeText={onChangeText}
-        />
-      )} */}
       <ChatBox
         me={me}
         cursorId={id.toString()}
