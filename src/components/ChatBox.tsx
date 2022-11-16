@@ -5,7 +5,7 @@ interface Props {
   cursorId: string;
   isFocus: boolean;
   me: boolean;
-  isShowChatBox: boolean;
+  showChatBox: boolean;
   text: string | null;
   onChangeText: (id: string, key: string, value: string | null) => void;
 }
@@ -15,7 +15,7 @@ const ChatBox: React.FC<Props> = ({
   isFocus,
   text,
   onChangeText,
-  isShowChatBox,
+  showChatBox,
   me,
 }) => {
   const [width, setWidth] = useState(0);
@@ -42,9 +42,9 @@ const ChatBox: React.FC<Props> = ({
   }, [text]);
 
   return (
-    <div className={`cursor-chat-box ${isShowChatBox ? "has-message" : ""}`}>
+    <div className={`cursor-chat-box ${showChatBox ? "has-message" : ""}`}>
       <div className="cursor-chat-box-name">{me ? "Me" : cursorId}</div>
-      {isShowChatBox && (
+      {showChatBox && (
         <div className="cursor-chat-box-wrapper">
           <span ref={inputSizerRef} className="cursor-chat-box-sizer">
             {text}

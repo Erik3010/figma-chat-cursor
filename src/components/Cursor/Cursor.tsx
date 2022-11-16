@@ -1,5 +1,4 @@
-import { Coordinate } from "../../types/coordinate";
-import { UserCursor } from "../../types/UserCursor";
+import { UserCursor } from "../../types";
 import ChatBox from "../ChatBox";
 
 interface Props {
@@ -9,11 +8,11 @@ interface Props {
 }
 
 const Cursor: React.FC<Props> = ({ userCursor, onChangeText, me }) => {
-  const { id, coordinate, isShowChatBox, isFocusChatBox, text } = userCursor;
+  const { id, coordinate, showChatBox, isFocusChatBox, text } = userCursor;
 
   return (
     <div
-      id={id.toString()}
+      id={id}
       className="pointer-wrapper"
       style={{
         transform: `translate3d(${coordinate.x}px, ${coordinate.y}px, 0px)`,
@@ -21,11 +20,11 @@ const Cursor: React.FC<Props> = ({ userCursor, onChangeText, me }) => {
     >
       <ChatBox
         me={me}
-        cursorId={id.toString()}
+        cursorId={id}
         text={text}
         isFocus={isFocusChatBox}
         onChangeText={onChangeText}
-        isShowChatBox={isShowChatBox}
+        showChatBox={showChatBox}
       />
       <svg
         className="pointer"

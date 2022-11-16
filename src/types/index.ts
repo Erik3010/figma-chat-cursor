@@ -1,8 +1,11 @@
-import { Coordinate } from "./coordinate";
+export interface Coordinate {
+  x: number;
+  y: number;
+}
 
 export interface UserCursor {
-  id: number | string;
-  isShowChatBox: boolean;
+  id: string;
+  showChatBox: boolean;
   isFocusChatBox: boolean;
   coordinate: Coordinate;
   text: string | null;

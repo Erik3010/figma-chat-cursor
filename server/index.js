@@ -23,7 +23,7 @@ const setUser = (userId, connection) => {
     connection,
     user_id: userId,
     coordinate: { x: 0, y: 0 },
-    isShowChatBox: false,
+    showChatBox: false,
     isFocusChatBox: false,
     text: null,
   });
@@ -64,7 +64,7 @@ const handleWSMessage = (userId, connection, messageBuffer) => {
       break;
     case "SET_MESSAGE":
       setValue(userId, "text", result.payload);
-      setValue(userId, "isShowChatBox", result.payload !== "");
+      setValue(userId, "showChatBox", result.payload !== "");
 
       broadcast({
         type: "MESSAGE_CHANGED",
@@ -95,7 +95,7 @@ const handleWSConnection = (socket, req) => {
       return {
         id: user.user_id,
         coordinate: user.coordinate,
-        isShowChatBox: user.isShowChatBox,
+        showChatBox: user.showChatBox,
         isFocusChatBox: user.isFocusChatBox,
         text: user.text,
       };

@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Coordinate } from "./types/coordinate";
-import { UserCursor } from "./types/UserCursor";
-import Cursor from "./components/Cursor/Cursor";
-import { randomId } from "./helpers";
-import { useWS } from "./hooks/useWS";
+import { Coordinate, UserCursor } from "../types";
+import Cursor from "./Cursor/Cursor";
+import { randomId } from "../helpers";
+import { useWS } from "../hooks/useWS";
 
 function App() {
   const [coordinate, setCoordinate] = useState<Coordinate>({ x: 0, y: 0 });
-  const [isShowChatBox, setIsShowChatBox] = useState(false);
+  const [showChatBox, setShowChatBox] = useState(false);
   const [isFocusChatBox, setIsFocusChatBox] = useState(false);
   const [text, setText] = useState<string | null>(null);
   const [isWSConnected, setIsWSConnected] = useState(false);
@@ -53,7 +52,7 @@ function App() {
           const newCursor = {
             id: result.payload.user_id,
             coordinate: { x: 0, y: 0 },
-            isShowChatBox: false,
+            showChatBox: false,
             isFocusChatBox: false,
             text: null,
           };
@@ -92,7 +91,7 @@ function App() {
 
           newOtherCustomer[index] = {
             ...newOtherCustomer[index],
-            isShowChatBox: message !== "",
+            showChatBox: message !== "",
             text: message,
           };
 
@@ -131,15 +130,15 @@ function App() {
 
       if (key === "/") {
         setIsFocusChatBox(true);
-        setIsShowChatBox(true);
+        setShowChatBox(true);
       } else if (key === "Escape") {
-        setIsShowChatBox(false);
+        setShowChatBox(false);
         setIsFocusChatBox(false);
         setText("");
         sendMessage("SET_MESSAGE", "");
       }
     },
-    [isShowChatBox, webSocket.current]
+    [showChatBox, webSocket.current]
   );
 
   const handleExitPage = useCallback(() => {
@@ -149,7 +148,6 @@ function App() {
 
   useEffect(() => {
     window.addEventListener("beforeunload", handleExitPage);
-
     return () => {
       window.removeEventListener("beforeunload", handleExitPage);
     };
@@ -182,8 +180,8 @@ function App() {
       <div className="cursor-layer">
         {otherCursors.map((cursor) => (
           <Cursor
-            me={false}
             key={cursor.id}
+            me={false}
             userCursor={cursor}
             onChangeText={(id: string, key: string, value: string | null) =>
               handleTextChange(id, value)
@@ -195,7 +193,7 @@ function App() {
           userCursor={{
             id: cursorId.current,
             coordinate,
-            isShowChatBox,
+            showChatBox,
             isFocusChatBox,
             text,
           }}
