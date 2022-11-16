@@ -1,3 +1,4 @@
+import { isEmptyString } from "../helpers";
 import { UserCursor } from "../types";
 
 export enum OtherCursorsActionType {
@@ -44,7 +45,7 @@ const reducer = (state: UserCursor[], { type, payload }: OtherCursorAction) => {
       const { text } = payload;
       return state.map((user) =>
         payload.id === user.id
-          ? { ...user, text, showChatBox: text !== "" }
+          ? { ...user, text, showChatBox: !isEmptyString(text) }
           : user
       );
   }

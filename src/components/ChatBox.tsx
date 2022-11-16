@@ -55,7 +55,6 @@ const ChatBox: React.FC<Props> = ({
             style={{ width }}
             type="text"
             className="cursor-chat-box-input"
-            placeholder="Say something..."
             autoComplete="off"
             autoCorrect="off"
             spellCheck="false"

@@ -64,24 +64,24 @@ body {
   margin: 1rem 0 0 1rem;
   background: #1a8fa1;
   border: 1px solid #156f7c;
-  padding: .15rem .35rem;
-  border-radius: .125rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.125rem;
   color: #fff;
-  transition: .3s ease;
+  transition: 0.3s ease;
 }
 
 .cursor-chat-box.has-message {
   border-radius: 0 20px 20px;
-  padding: .5rem .875rem .3rem;
+  padding: 0.5rem 0.875rem 0.3rem;
   border-width: 2px;
 }
 
 .cursor-chat-box.has-message .cursor-chat-box-name {
-  margin-bottom: .25rem;
+  margin-bottom: 0.25rem;
 }
 
 .cursor-chat-box-name {
-  font-size: .7rem;
+  font-size: 0.7rem;
   line-height: 0;
   padding: 0.35rem 0.1rem;
 }

@@ -12,3 +12,5 @@ export const measureTextWidth = (text: string, fontSize: number) => {
 
   return width;
 };
+
+export const isEmptyString = (value: any) => ["", null].includes(value);

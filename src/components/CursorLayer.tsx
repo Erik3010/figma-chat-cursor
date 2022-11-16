@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { randomId } from "../helpers";
 import { useWS } from "../hooks/useWS";
 import { Coordinate, UserCursor } from "../types";
 import { EventTypes } from "../enums";
@@ -8,19 +7,21 @@ import ReactPortal from "./ReactPortal";
 import otherCursorReducer, {
   OtherCursorsActionType,
 } from "../reducers/otherCursors";
+import cursorReducer, {
+  CursorActionType,
+  initialState,
+} from "../reducers/cursor";
 
 const CursorLayer = () => {
-  const [coordinate, setCoordinate] = useState<Coordinate>({ x: 0, y: 0 });
-  const [showChatBox, setShowChatBox] = useState(false);
   const [isFocusChatBox, setIsFocusChatBox] = useState(false);
-  const [text, setText] = useState<string | null>(null);
   const [isWSConnected, setIsWSConnected] = useState(false);
+
+  const [cursor, dispatchCursor] = useReducer(cursorReducer, initialState);
   const [otherCursors, dispatchOtherCursor] = useReducer(
     otherCursorReducer,
     []
   );
 
-  const cursorId = useRef(randomId());
   const allowedKeys = useRef(["/", "Escape"]);
 
   const {
@@ -30,7 +31,6 @@ const CursorLayer = () => {
   } = useWS({
     handleMessage,
     handleOpenConnection: () => setIsWSConnected(true),
-    // handleCloseConnection: () => setOtherCursors([]),
     handleCloseConnection: () =>
       dispatchOtherCursor({
         type: OtherCursorsActionType.SET_ALL_USER,
@@ -43,11 +43,11 @@ const CursorLayer = () => {
 
     switch (result.type) {
       case EventTypes.NEW_USER:
-        console.log(result, cursorId.current);
+        console.log(result, cursor.id);
         handleNewUser(result.payload);
         break;
       case EventTypes.REMOVE_USER:
-        console.log(result, cursorId.current);
+        console.log(result, cursor.id);
         handleRemoveUser(result.payload);
         break;
       case EventTypes.GET_USERS:
@@ -65,13 +65,13 @@ const CursorLayer = () => {
 
   const handleNewUser = useCallback(
     (payload: { user_id: UserCursor["id"] }) => {
-      if (payload.user_id === cursorId.current) return;
+      if (payload.user_id === cursor.id) return;
       dispatchOtherCursor({
         type: OtherCursorsActionType.ADD_NEW_USER,
         payload: payload.user_id,
       });
     },
-    [otherCursors]
+    [otherCursors, cursor.id]
   );
 
   const handleRemoveUser = useCallback(
@@ -81,31 +81,31 @@ const CursorLayer = () => {
         payload: payload.user_id,
       });
     },
-    [otherCursors]
+    [otherCursors, cursor.id]
   );
 
   const handleCoordinateChange = useCallback(
     (payload: { user_id: UserCursor["id"]; coordinate: Coordinate }) => {
       const { user_id, coordinate } = payload;
-      if (user_id === cursorId.current) return;
+      if (user_id === cursor.id) return;
       dispatchOtherCursor({
         type: OtherCursorsActionType.UPDATE_COORDINATE,
         payload: { id: user_id, coordinate },
       });
     },
-    [otherCursors]
+    [otherCursors, cursor.id]
   );
 
   const handleMessageChange = useCallback(
     (payload: { user_id: UserCursor["id"]; message: any }) => {
       const { user_id, message } = payload;
-      if (user_id === cursorId.current) return;
+      if (user_id === cursor.id) return;
       dispatchOtherCursor({
         type: OtherCursorsActionType.UPDATE_MESSAGE,
         payload: { id: user_id, text: message },
       });
     },
-    [otherCursors]
+    [otherCursors, cursor.id]
   );
 
   const handleGetUsers = useCallback(
@@ -120,22 +120,27 @@ const CursorLayer = () => {
 
   const handleTextChange = useCallback(
     (id: UserCursor["id"], value: UserCursor["text"]) => {
-      if (id !== cursorId.current) return;
+      if (id !== cursor.id) return;
 
-      setText(value);
+      dispatchCursor({ type: CursorActionType.UPDATE_MESSAGE, payload: value });
       sendMessage("SET_MESSAGE", value);
     },
-    [cursorId.current, setText, sendMessage]
+    [cursor.id, dispatchCursor, sendMessage]
   );
 
   const handleMouseMove = useCallback(
     ({ clientX, clientY }: MouseEvent) => {
       if (!isWSConnected) return;
 
-      setCoordinate({ x: clientX, y: clientY });
-      sendMessage("SET_COORDINATE", { x: clientX, y: clientY });
+      const coordinate = { x: clientX, y: clientY };
+
+      dispatchCursor({
+        type: CursorActionType.UPDATE_COORDINATE,
+        payload: coordinate,
+      });
+      sendMessage("SET_COORDINATE", coordinate);
     },
-    [setCoordinate, sendMessage, isWSConnected]
+    [dispatchCursor, sendMessage, isWSConnected]
   );
 
   const handleKeyDown = useCallback(
@@ -147,21 +152,26 @@ const CursorLayer = () => {
 
       if (key === "/") {
         setIsFocusChatBox(true);
-        setShowChatBox(true);
+        dispatchCursor({
+          type: CursorActionType.UPDATE_SHOW_CHAT_BOX,
+          payload: true,
+        });
       } else if (key === "Escape") {
-        setShowChatBox(false);
         setIsFocusChatBox(false);
-        setText("");
+        dispatchCursor({
+          type: CursorActionType.UPDATE_MESSAGE,
+          payload: "",
+        });
         sendMessage("SET_MESSAGE", "");
       }
     },
-    [showChatBox]
+    [cursor.showChatBox]
   );
 
   const handleExitPage = useCallback(() => {
-    sendMessage("REMOVE_USER", { user_id: cursorId.current });
+    sendMessage("REMOVE_USER", { user_id: cursor.id });
     console.log("EXIT PAGE");
-  }, [sendMessage]);
+  }, [cursor.id, sendMessage]);
 
   useEffect(() => {
     window.addEventListener("beforeunload", handleExitPage);
@@ -185,9 +195,9 @@ const CursorLayer = () => {
   }, [handleKeyDown]);
 
   useEffect(() => {
-    connectWS(cursorId.current);
+    connectWS(cursor.id);
     return () => {
-      //   sendMessage("REMOVE_USER", { user_id: cursorId.current });
+      // sendMessage("REMOVE_USER", { user_id: cursorId.current });
       closeWS();
     };
   }, []);
@@ -207,12 +217,7 @@ const CursorLayer = () => {
           me
           isFocusChatBox={isFocusChatBox}
           onChangeText={handleTextChange}
-          userCursor={{
-            id: cursorId.current,
-            coordinate,
-            showChatBox,
-            text,
-          }}
+          userCursor={cursor}
         />
       </div>
     </ReactPortal>
