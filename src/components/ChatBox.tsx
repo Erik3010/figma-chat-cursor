@@ -19,6 +19,8 @@ const ChatBox: React.FC<Props> = ({
   const { id, text, showChatBox, color } = userCursor;
 
   const [width, setWidth] = useState(0);
+  const [isEnter, setIsEnter] = useState(false);
+  const [tempText, setTempText] = useState<string | null>(null);
   const inputSizerRef = useRef<HTMLInputElement>(null);
 
   const onChangeValue = useCallback(
@@ -33,6 +35,36 @@ const ChatBox: React.FC<Props> = ({
     setWidth(measureTextWidth(text ?? "", fontSize));
   }, [text]);
 
+  const handleOnInput = (event: React.KeyboardEvent) => {
+    const { key } = event;
+
+    if (key !== "Enter") {
+      if (!isEnter) return;
+
+      const inputSizer = inputSizerRef.current;
+      inputSizer?.classList.add("animate-up");
+
+      inputSizer?.addEventListener("animationend", (event) => {
+        const el = event.target as HTMLElement;
+
+        el?.classList.remove("visible");
+        el?.classList.remove("animate-up");
+
+        setTempText(null);
+        setIsEnter(false);
+      });
+
+      return;
+    }
+
+    if (isEnter) return;
+
+    setTempText(text);
+    onChangeText(id, "");
+    inputSizerRef.current?.classList.add("visible");
+    setIsEnter(true);
+  };
+
   return (
     <div
       className={`cursor-chat-box ${showChatBox ? "has-message" : ""}`}
@@ -41,8 +73,8 @@ const ChatBox: React.FC<Props> = ({
       <div className="cursor-chat-box-name">{me ? "Me" : id}</div>
       {showChatBox && (
         <div className="cursor-chat-box-wrapper">
-          <span ref={inputSizerRef} className="cursor-chat-box-sizer">
-            {text}
+          <span ref={inputSizerRef} className={`cursor-chat-box-sizer`}>
+            {isEnter ? tempText : text}
           </span>
           <input
             ref={chatBoxInputRef}
@@ -54,6 +86,7 @@ const ChatBox: React.FC<Props> = ({
             autoComplete="off"
             autoCorrect="off"
             spellCheck="false"
+            onKeyDown={handleOnInput}
           />
         </div>
       )}

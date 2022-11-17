@@ -157,16 +157,13 @@ const CursorLayer = () => {
 
       if (key === "/") {
         dispatchCursor({
-          type: CursorActionType.UPDATE_SHOW_CHAT_BOX,
+          type: CursorActionType.OPEN_CHAT_BOX,
           payload: true,
         });
         setTimeout(() => chatBoxInputRef.current?.focus());
       } else if (key === "Escape") {
         chatBoxInputRef.current?.blur();
-        dispatchCursor({
-          type: CursorActionType.UPDATE_MESSAGE,
-          payload: "",
-        });
+        dispatchCursor({ type: CursorActionType.CLOSE_CHAT_BOX });
         sendMessage("SET_MESSAGE", "");
       }
     },

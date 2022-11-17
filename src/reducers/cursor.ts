@@ -5,8 +5,9 @@ import { CursorColor, UserCursor } from "../types";
 export enum CursorActionType {
   UPDATE_COORDINATE,
   UPDATE_MESSAGE,
-  UPDATE_SHOW_CHAT_BOX,
+  OPEN_CHAT_BOX,
   UPDATE_CURSOR_COLOR,
+  CLOSE_CHAT_BOX,
 }
 
 export type CursorAction =
@@ -19,10 +20,14 @@ export type CursorAction =
       payload: UserCursor["text"];
     }
   | {
-      type: CursorActionType.UPDATE_SHOW_CHAT_BOX;
+      type: CursorActionType.OPEN_CHAT_BOX;
       payload: UserCursor["showChatBox"];
     }
-  | { type: CursorActionType.UPDATE_CURSOR_COLOR; payload: CursorColor };
+  | { type: CursorActionType.UPDATE_CURSOR_COLOR; payload: CursorColor }
+  | {
+      type: CursorActionType.CLOSE_CHAT_BOX;
+      payload?: UserCursor["showChatBox"];
+    };
 
 export const initialState = {
   id: randomId(),
@@ -37,9 +42,12 @@ const reducer = (state: UserCursor, { type, payload }: CursorAction) => {
     case CursorActionType.UPDATE_COORDINATE:
       return { ...state, coordinate: payload };
     case CursorActionType.UPDATE_MESSAGE:
-      return { ...state, text: payload, showChatBox: !isEmptyString(payload) };
-    case CursorActionType.UPDATE_SHOW_CHAT_BOX:
+      // return { ...state, text: payload, showChatBox: !isEmptyString(payload) };
+      return { ...state, text: payload };
+    case CursorActionType.OPEN_CHAT_BOX:
       return { ...state, showChatBox: payload };
+    case CursorActionType.CLOSE_CHAT_BOX:
+      return { ...state, text: null, showChatBox: false };
     case CursorActionType.UPDATE_CURSOR_COLOR:
       return { ...state, color: { ...payload } };
   }

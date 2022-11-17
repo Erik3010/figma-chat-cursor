@@ -89,6 +89,8 @@ body {
 
 .cursor-chat-box-wrapper {
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .cursor-chat-box-wrapper,
@@ -101,6 +103,15 @@ body {
   position: absolute;
   white-space: pre;
   visibility: hidden;
+}
+
+.cursor-chat-box-sizer.visible {
+  visibility: visible;
+  position: relative;
+}
+
+.cursor-chat-box-sizer.animate-up {
+  animation: fade-up .5s ease;
 }
 
 .cursor-chat-box-input {
@@ -119,4 +130,11 @@ body {
   position: absolute;
   white-space: pre;
   visibility: hidden;
+}
+
+@keyframes fade-up {
+  to {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
 }
