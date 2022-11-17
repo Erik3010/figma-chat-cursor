@@ -4,18 +4,18 @@ import Pointer from "./Pointer";
 
 interface Props {
   userCursor: UserCursor;
-  me: boolean;
-  isFocusChatBox?: boolean;
+  me?: boolean;
   onChangeText: ChangeTextHandler;
+  chatBoxInputRef?: React.Ref<HTMLInputElement>;
 }
 
 const Cursor: React.FC<Props> = ({
   userCursor,
   onChangeText,
-  me,
-  isFocusChatBox = false,
+  chatBoxInputRef,
+  me = true,
 }) => {
-  const { id, coordinate, showChatBox, text } = userCursor;
+  const { id, coordinate, color } = userCursor;
 
   return (
     <div
@@ -26,14 +26,12 @@ const Cursor: React.FC<Props> = ({
       }}
     >
       <ChatBox
+        userCursor={userCursor}
         me={me}
-        cursorId={id}
-        text={text}
-        isFocus={isFocusChatBox}
         onChangeText={onChangeText}
-        showChatBox={showChatBox}
+        chatBoxInputRef={chatBoxInputRef}
       />
-      <Pointer />
+      <Pointer color={color} />
     </div>
   );
 };

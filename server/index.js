@@ -5,6 +5,14 @@ const port = 8080;
 
 const users = [];
 
+const CURSOR_COLORS = [
+  { background: "#1a8fa1", border: "#156f7c" },
+  { background: "#eb5757", border: "#b33b3b" },
+  { background: "#ee994e", border: "#be7230" },
+  { background: "#3787f0", border: "#2669c0" },
+  { background: "#9b51e0", border: "#7337aa" },
+];
+
 const server = new WebSocket.Server({ port }, () => {
   console.log(`Server is listening on port ${port}`);
 });
@@ -15,12 +23,13 @@ const broadcast = (payload, excludedUser) => {
   }
 };
 
-const setUser = (userId, connection) => {
+const setUser = (userId, color, connection) => {
   const index = users.findIndex(({ id }) => id === userId);
   if (index >= 0) return;
 
   users.push({
     connection,
+    color,
     user_id: userId,
     coordinate: { x: 0, y: 0 },
     showChatBox: false,
@@ -82,11 +91,13 @@ const handleWSConnection = (socket, req) => {
   const { query } = url.parse(req.url, true);
   const userId = query.user_id;
 
+  // const color = CURSOR_COLORS[users.length % CURSOR_COLORS.length];
+  const color = CURSOR_COLORS[Math.floor(Math.random() * CURSOR_COLORS.length)];
   broadcast({
     type: "NEW_USER",
-    payload: { user_id: userId },
+    payload: { user_id: userId, color },
   });
-  setUser(userId, socket);
+  setUser(userId, color, socket);
 
   const usersResponse = users
     .filter(({ user_id }) => userId !== user_id)
@@ -96,9 +107,15 @@ const handleWSConnection = (socket, req) => {
         coordinate: user.coordinate,
         showChatBox: user.showChatBox,
         text: user.text,
+        color: user.color,
       };
     });
-  socket.send(JSON.stringify({ type: "GET_USERS", payload: usersResponse }));
+  socket.send(
+    JSON.stringify({
+      type: "GET_USERS",
+      payload: { users: usersResponse, color },
+    })
+  );
 
   socket.on("message", handleWSMessage.bind(this, userId, socket));
   socket.on("close", handleWSClose.bind(this, userId));

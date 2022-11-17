@@ -1,3 +1,4 @@
+import { CURSOR_COLORS } from "../constants";
 import { isEmptyString } from "../helpers";
 import { UserCursor } from "../types";
 
@@ -11,7 +12,10 @@ export enum OtherCursorsActionType {
 
 export type OtherCursorAction =
   | { type: OtherCursorsActionType.SET_ALL_USER; payload: UserCursor[] }
-  | { type: OtherCursorsActionType.ADD_NEW_USER; payload: UserCursor["id"] }
+  | {
+      type: OtherCursorsActionType.ADD_NEW_USER;
+      payload: Pick<UserCursor, "id" | "color">;
+    }
   | { type: OtherCursorsActionType.REMOVE_USER; payload: UserCursor["id"] }
   | {
       type: OtherCursorsActionType.UPDATE_COORDINATE;
@@ -28,10 +32,12 @@ const reducer = (state: UserCursor[], { type, payload }: OtherCursorAction) => {
       return payload;
     case OtherCursorsActionType.ADD_NEW_USER:
       const newUser: UserCursor = {
-        id: payload,
+        id: payload.id,
         coordinate: { x: 0, y: 0 },
         showChatBox: false,
         text: null,
+        color: payload.color,
+        // color: CURSOR_COLORS[2],
       };
       return [...state, newUser];
     case OtherCursorsActionType.REMOVE_USER:

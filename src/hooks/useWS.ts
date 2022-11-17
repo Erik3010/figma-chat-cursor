@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { WEBSOCKET_URL } from "../consants";
+import { WEBSOCKET_URL } from "../constants";
 
 export const useWS = ({
   handleOpenConnection,

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useWS } from "../hooks/useWS";
-import { Coordinate, UserCursor } from "../types";
+import { Coordinate, CursorColor, UserCursor } from "../types";
 import { EventTypes } from "../enums";
 import Cursor from "./Cursor";
 import ReactPortal from "./ReactPortal";
@@ -13,7 +13,6 @@ import cursorReducer, {
 } from "../reducers/cursor";
 
 const CursorLayer = () => {
-  const [isFocusChatBox, setIsFocusChatBox] = useState(false);
   const [isWSConnected, setIsWSConnected] = useState(false);
 
   const [cursor, dispatchCursor] = useReducer(cursorReducer, initialState);
@@ -23,6 +22,7 @@ const CursorLayer = () => {
   );
 
   const allowedKeys = useRef(["/", "Escape"]);
+  const chatBoxInputRef = useRef<HTMLInputElement>(null);
 
   const {
     connect: connectWS,
@@ -64,11 +64,12 @@ const CursorLayer = () => {
   }
 
   const handleNewUser = useCallback(
-    (payload: { user_id: UserCursor["id"] }) => {
+    (payload: { user_id: UserCursor["id"]; color: UserCursor["color"] }) => {
       if (payload.user_id === cursor.id) return;
       dispatchOtherCursor({
         type: OtherCursorsActionType.ADD_NEW_USER,
-        payload: payload.user_id,
+        // payload: payload.user_id,
+        payload: { id: payload.user_id, color: payload.color },
       });
     },
     [otherCursors, cursor.id]
@@ -109,10 +110,14 @@ const CursorLayer = () => {
   );
 
   const handleGetUsers = useCallback(
-    (payload: UserCursor[]) => {
+    (payload: { users: UserCursor[]; color: CursorColor }) => {
       dispatchOtherCursor({
         type: OtherCursorsActionType.SET_ALL_USER,
-        payload,
+        payload: payload.users,
+      });
+      dispatchCursor({
+        type: CursorActionType.UPDATE_CURSOR_COLOR,
+        payload: payload.color,
       });
     },
     [otherCursors]
@@ -151,13 +156,13 @@ const CursorLayer = () => {
       event.preventDefault();
 
       if (key === "/") {
-        setIsFocusChatBox(true);
         dispatchCursor({
           type: CursorActionType.UPDATE_SHOW_CHAT_BOX,
           payload: true,
         });
+        setTimeout(() => chatBoxInputRef.current?.focus());
       } else if (key === "Escape") {
-        setIsFocusChatBox(false);
+        chatBoxInputRef.current?.blur();
         dispatchCursor({
           type: CursorActionType.UPDATE_MESSAGE,
           payload: "",
@@ -170,7 +175,7 @@ const CursorLayer = () => {
 
   const handleExitPage = useCallback(() => {
     sendMessage("REMOVE_USER", { user_id: cursor.id });
-    console.log("EXIT PAGE");
+    console.log("exit page");
   }, [cursor.id, sendMessage]);
 
   useEffect(() => {
@@ -214,10 +219,9 @@ const CursorLayer = () => {
           />
         ))}
         <Cursor
-          me
-          isFocusChatBox={isFocusChatBox}
           onChangeText={handleTextChange}
           userCursor={cursor}
+          chatBoxInputRef={chatBoxInputRef}
         />
       </div>
     </ReactPortal>

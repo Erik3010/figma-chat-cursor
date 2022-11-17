@@ -3,11 +3,17 @@ export interface Coordinate {
   y: number;
 }
 
+export interface CursorColor {
+  background: string;
+  border: string;
+}
+
 export interface UserCursor {
   id: string;
   showChatBox: boolean;
   coordinate: Coordinate;
   text: string | null;
+  color: CursorColor;
 }
 
 export type ChangeTextHandler = (

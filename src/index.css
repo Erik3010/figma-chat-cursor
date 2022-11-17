@@ -62,8 +62,9 @@ body {
 
 .cursor-chat-box {
   margin: 1rem 0 0 1rem;
-  background: #1a8fa1;
-  border: 1px solid #156f7c;
+  /* background: #1a8fa1;
+  border: 1px solid #156f7c; */
+  border: 1px solid;
   padding: 0.15rem 0.35rem;
   border-radius: 0.125rem;
   color: #fff;
