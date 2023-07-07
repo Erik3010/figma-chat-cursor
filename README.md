@@ -1,6 +1,6 @@
 # Figma Chat Cursor
 
-![Preview](https://github.com/Erik3010/figima-chat-cursor/blob/master/preview/preview.gif?raw=true)
+![Preview](https://github.com/Erik3010/figma-chat-cursor/blob/master/preview/preview.gif?raw=true)
 
 ## Description
 
